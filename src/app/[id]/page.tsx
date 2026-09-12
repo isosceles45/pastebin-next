@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import WordMark from "@/components/WordMark";
 import { consumePaste } from "@/lib/pastes";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +13,7 @@ function Frame({ children }: { children: React.ReactNode }) {
     <main className="mx-auto max-w-3xl px-6 py-16">
       <header className="mb-8 flex items-baseline justify-between">
         <Link href="/" className="font-display text-2xl">
-          Pastebin
+          <WordMark />
         </Link>
         <Link href="/" className="text-sm text-muted hover:text-ink">
           New paste

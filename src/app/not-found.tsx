@@ -1,11 +1,13 @@
 import Link from "next/link";
 
+import WordMark from "@/components/WordMark";
+
 export default function NotFound() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <header className="mb-8">
         <Link href="/" className="font-display text-2xl">
-          Pastebin
+          <WordMark />
         </Link>
       </header>
       <div className="rounded-lg border border-line bg-card p-10 text-center">

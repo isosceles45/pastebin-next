@@ -1,18 +1,24 @@
+import { passwordFrom, READ_FAILURES } from "@/lib/http";
 import { consumePaste } from "@/lib/pastes";
 
 type Params = { params: Promise<{ id: string }> };
 
 const TEXT = { "content-type": "text/plain; charset=utf-8" };
 
-export async function GET(_request: Request, { params }: Params) {
+export async function GET(request: Request, { params }: Params) {
   const { id } = await params;
-  const result = await consumePaste(id);
+  const result = await consumePaste(id, passwordFrom(request));
 
   if (!result.ok) {
-    return result.reason === "expired"
-      ? new Response("this paste has expired\n", { status: 410, headers: TEXT })
-      : new Response("paste not found\n", { status: 404, headers: TEXT });
+    const failure = READ_FAILURES[result.reason];
+    return new Response(`${failure.error}\n`, { status: failure.status, headers: TEXT });
   }
 
-  return new Response(result.paste.content, { headers: TEXT });
+  const { paste } = result;
+
+  return new Response(paste.content, {
+    headers: paste.filename
+      ? { ...TEXT, "content-disposition": `inline; filename="${paste.filename.replace(/"/g, "")}"` }
+      : TEXT,
+  });
 }

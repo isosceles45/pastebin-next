@@ -1,51 +1,42 @@
-import { sql } from "@/lib/db";
-import { parseDuration, parseMaxViews, ValidationError } from "@/lib/expiry";
-import { randomId } from "@/lib/ids";
+import { createPaste, MAX_CONTENT_BYTES } from "@/lib/pastes";
+import { ConflictError, ValidationError } from "@/lib/validation";
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => null);
-
-  const content = typeof body?.content === "string" ? body.content : "";
-  if (content.length === 0) {
-    return Response.json(
-      { error: "content is required and must not be empty" },
-      { status: 400 },
-    );
+  const declaredSize = Number(request.headers.get("content-length") ?? 0);
+  if (declaredSize > MAX_CONTENT_BYTES * 2) {
+    return Response.json({ error: "request body is too large" }, { status: 413 });
   }
 
-  let expiresAt: Date | null = null;
-  let maxViews: number | null = null;
+  const body = await request.json().catch(() => null);
+  if (body === null || typeof body !== "object") {
+    return Response.json({ error: "expected a JSON object" }, { status: 400 });
+  }
 
   try {
-    if (body.expiresIn != null && body.expiresIn !== "") {
-      expiresAt = new Date(Date.now() + parseDuration(body.expiresIn) * 1000);
-    }
-    if (body.maxViews != null && body.maxViews !== "") {
-      maxViews = parseMaxViews(body.maxViews);
-    }
+    const created = await createPaste(body);
+    const origin = new URL(request.url).origin;
+
+    return Response.json(
+      {
+        id: created.id,
+        url: `${origin}/${created.id}`,
+        rawUrl: `${origin}/raw/${created.id}`,
+        manageUrl: `${origin}/${created.id}?token=${created.editToken}`,
+        editToken: created.editToken,
+        filename: created.filename,
+        language: created.language,
+        expiresAt: created.expiresAt,
+        maxViews: created.maxViews,
+      },
+      { status: 201 },
+    );
   } catch (error) {
     if (error instanceof ValidationError) {
-      return Response.json({ error: error.message }, { status: 400 });
+      return Response.json({ error: error.message }, { status: error.status });
+    }
+    if (error instanceof ConflictError) {
+      return Response.json({ error: error.message }, { status: 409 });
     }
     throw error;
   }
-
-  const id = randomId();
-
-  await sql`
-    INSERT INTO pastes (id, content, expires_at, max_views)
-    VALUES (${id}, ${content}, ${expiresAt}, ${maxViews})
-  `;
-
-  const origin = new URL(request.url).origin;
-
-  return Response.json(
-    {
-      id,
-      url: `${origin}/${id}`,
-      expiresAt,
-      maxViews,
-    },
-    { status: 201 },
-  );
 }
