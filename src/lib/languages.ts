@@ -1,0 +1,60 @@
+export const LANGUAGES = [
+  "plain text",
+  "bash",
+  "c",
+  "cpp",
+  "csharp",
+  "css",
+  "diff",
+  "go",
+  "html",
+  "java",
+  "javascript",
+  "json",
+  "markdown",
+  "php",
+  "python",
+  "ruby",
+  "rust",
+  "sql",
+  "typescript",
+  "xml",
+  "yaml",
+];
+
+const BY_EXTENSION: Record<string, string> = {
+  c: "c",
+  cc: "cpp",
+  cpp: "cpp",
+  cs: "csharp",
+  css: "css",
+  diff: "diff",
+  go: "go",
+  h: "c",
+  htm: "html",
+  html: "html",
+  java: "java",
+  js: "javascript",
+  json: "json",
+  jsx: "javascript",
+  md: "markdown",
+  mjs: "javascript",
+  patch: "diff",
+  php: "php",
+  py: "python",
+  rb: "ruby",
+  rs: "rust",
+  sh: "bash",
+  sql: "sql",
+  ts: "typescript",
+  tsx: "typescript",
+  xml: "xml",
+  yaml: "yaml",
+  yml: "yaml",
+};
+
+export function languageFromFilename(filename: string): string | null {
+  const extension = filename.split(".").pop()?.toLowerCase();
+
+  return extension ? (BY_EXTENSION[extension] ?? null) : null;
+}
