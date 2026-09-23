@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import LocalTime from "@/components/LocalTime";
 import PasswordGate from "@/components/PasswordGate";
 import WordMark from "@/components/WordMark";
 import { highlight } from "@/lib/highlight";
@@ -93,9 +94,13 @@ export default async function PastePage({ params }: Props) {
       </article>
 
       <p className="mt-4 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
-        <span>Created {new Date(paste.createdAt).toLocaleString()}</span>
+        <span>
+          Created <LocalTime iso={paste.createdAt} />
+        </span>
         {paste.expiresAt && (
-          <span>· expires {new Date(paste.expiresAt).toLocaleString()}</span>
+          <span>
+            · expires <LocalTime iso={paste.expiresAt} />
+          </span>
         )}
         <span>
           ·{" "}
